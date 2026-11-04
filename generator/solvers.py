@@ -75,7 +75,7 @@ def solve_interval_scheduling_weight(windows):
         s_i, f_i, v_i = sorted_w[i - 1]
         # Find latest j < i with finishes[j-1] <= s_i
         # Binary search
-        low, high = 0, i - 1
+        low, high = 1, i - 1
         pred = 0
         while low <= high:
             mid = (low + high) // 2

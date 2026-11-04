@@ -389,7 +389,7 @@ def generate_case(seed, case_no):
         edges_set.add((min(0, target_0), max(0, target_0)))
         edges_set.add((min(0, inter_node), max(0, inter_node)))
         edges_set.add((min(inter_node, target_0), max(inter_node, target_0)))
-    elif tier == 'S' and case_no < 5:
+    elif tier == 'S' and case_no <= 5:
         # Variety 2: direct edge from 0 to target_0 with high cost, 2-hop path with low cost
         inter_node = (target_0 % (V - 1)) + 1
         if inter_node == target_0:
@@ -405,6 +405,15 @@ def generate_case(seed, case_no):
         # Set penalties to 0
         locations[target_0]['penalty'] = 0
         locations[inter_node]['penalty'] = 0
+        if tier != 'X' and scenario == 1:
+            num_pen = sum(1 for loc in locations if loc['penalty'] >= 2)
+            needed_pen = math.ceil(0.40 * V)
+            for loc in locations:
+                if num_pen >= needed_pen:
+                    break
+                if loc['loc_id'] not in (0, target_0, inter_node) and loc['penalty'] < 2:
+                    loc['penalty'] = 2
+                    num_pen += 1
     else:
         for vid in range(1, V):
             p = rng.randint(0, vid - 1)
@@ -412,11 +421,25 @@ def generate_case(seed, case_no):
             
     # Add random extra edges up to E_target while satisfying constraints
     if tier != 'X' and scenario == 5:
+        tree_adj = {i: [] for i in range(V)}
+        for eu, ev in edges_set:
+            tree_adj[eu].append(ev)
+            tree_adj[ev].append(eu)
+        dist_0 = {0: 0}
+        q = deque([0])
+        while q:
+            curr = q.popleft()
+            for nxt in tree_adj[curr]:
+                if nxt not in dist_0:
+                    dist_0[nxt] = dist_0[curr] + 1
+                    q.append(nxt)
+
         all_pairs = []
         for u in range(V):
             for v in range(u + 1, V):
                 if (u, v) not in edges_set and degrees[u] < 4 and degrees[v] < 4:
-                    all_pairs.append((u, v))
+                    if abs(dist_0[u] - dist_0[v]) <= 1:
+                        all_pairs.append((u, v))
         rng.shuffle(all_pairs)
         for u, v in all_pairs:
             if len(edges_set) >= E_target:
@@ -466,7 +489,7 @@ def generate_case(seed, case_no):
         cable = rng.randint(1, 100)
         
         # Tuning for Variety 2 and Trap 48
-        if tier == 'S' and case_no < 5:
+        if tier == 'S' and case_no <= 5:
             if (u, v) == (min(0, target_0), max(0, target_0)):
                 minutes = 55
             elif (u, v) in ((min(0, inter_node), max(0, inter_node)),
@@ -640,12 +663,13 @@ def generate_case(seed, case_no):
         radio_patterns[5]['count'] = 0
 
     if tier == 'S':
-        rep_len = rng.randint(10, 30)
+        min_rep_len, max_rep_len = 10, 30
     elif tier == 'M':
-        rep_len = rng.randint(30, 150)
+        min_rep_len, max_rep_len = 30, 150
     else: # tier L / X
-        rep_len = rng.randint(200, 1000)
+        min_rep_len, max_rep_len = 200, 1000
         
+    rep_len = rng.randint(min_rep_len, max_rep_len)
     rep_a = ''.join(rng.choices(ALPHABET_38, k=rep_len))
     rep_b_chars = list(rep_a)
     num_mutations = max(1, int(rep_len * 0.15))
@@ -654,14 +678,15 @@ def generate_case(seed, case_no):
         pos = rng.randint(0, len(rep_b_chars) - 1) if rep_b_chars else 0
         if op == 'sub' and rep_b_chars:
             rep_b_chars[pos] = rng.choice(ALPHABET_38)
-        elif op == 'del' and len(rep_b_chars) > 10:
+        elif op == 'del' and len(rep_b_chars) > min_rep_len:
             rep_b_chars.pop(pos)
-        elif op == 'ins':
+        elif op == 'ins' and len(rep_b_chars) < max_rep_len:
             rep_b_chars.insert(pos, rng.choice(ALPHABET_38))
     rep_b = ''.join(rep_b_chars)
     
     true_lev = levenshtein_distance(rep_a, rep_b)
     edit_bound = true_lev
+    assert true_lev <= edit_bound <= (len(rep_a) + len(rep_b))
 
     # -------------------------------------------------------------
     # 4. WINDOWS

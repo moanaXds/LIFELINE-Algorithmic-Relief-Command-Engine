@@ -24,11 +24,11 @@ Requires **Python 3.8+**.
 To reproduce the master `cases.xlsx` file using the group seed:
 
 ```bash
-python3 generator/generate.py --seed 17 --output cases.xlsx
+python3 generator/generate.py --seed 18 --output cases.xlsx
 ```
 
 ### Options
-- `--seed <int>`: Group seed $s$ from the group-selection sheet (default: `17`).
+- `--seed <int>`: Group seed $s$ from the group-selection sheet (default: `18`).
 - `--output <path>`: Destination path for the generated workbook (default: `cases.xlsx`).
 
 ## 4. Architecture

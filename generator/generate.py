@@ -4,7 +4,7 @@ Generates exactly 50 cases across exactly 20 Excel sheets matching the official 
 
 Usage:
     python3 generator/generate.py [--seed <group_seed>] [--output <path_to_cases.xlsx>]
-Default seed: 17
+Default seed: 18
 Default output: cases.xlsx
 """
 
@@ -84,7 +84,7 @@ SHEET_SCHEMAS = {
     ]
 }
 
-def build_all_cases(seed=17, num_cases=50):
+def build_all_cases(seed=18, num_cases=50):
     """
     Generate all 50 cases and format data rows for all 20 sheets.
     """
@@ -224,7 +224,7 @@ def build_all_cases(seed=17, num_cases=50):
 
 def main():
     parser = argparse.ArgumentParser(description="LIFELINE Cases Generator")
-    parser.add_argument("--seed", type=int, default=17, help="Group seed (default: 17)")
+    parser.add_argument("--seed", type=int, default=18, help="Group seed (default: 18)")
     parser.add_argument("--output", type=str, default="cases.xlsx", help="Output path (default: cases.xlsx)")
     args = parser.parse_args()
 
